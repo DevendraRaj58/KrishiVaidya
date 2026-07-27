@@ -1,7 +1,8 @@
 <div align="center">
 
 # 🌿 KrishiVaidya
-### *Trusted AI Advisory for Indian Farmers*
+
+### _Trusted AI Advisory for Indian Farmers_
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.0.7-FF6B35?logo=graphql)](https://github.com/langchain-ai/langgraph)
@@ -100,7 +101,9 @@ KrishiVaidya is not a prompt wrapper. It's a **production-grade agentic AI pipel
 ## Key Features
 
 ### 🔒 1. Symbolic Safety Verification (The Core Innovation)
+
 A rule-based verification engine sits between the LLM and the farmer. Before any recommendation is delivered, it checks:
+
 - **PHI violations** — Is the harvest window respected for this pesticide?
 - **Stage-contraindicated interventions** — Is this chemical banned at this crop stage?
 - **Dose overrides** — Does the LLM recommend a dangerous excess dosage?
@@ -110,7 +113,9 @@ A rule-based verification engine sits between the LLM and the farmer. Before any
 Every violation is **caught, explained, and either fixed or escalated** — never silently delivered.
 
 ### 🧠 2. Agricultural Knowledge Graph
+
 Built on NetworkX with ICAR-sourced data:
+
 - **Typed entity nodes**: Crops, Diseases, Pests, Interventions, Safety Constraints, Govt Schemes, Regions
 - **Causal directed edges**: `Intervention --treats→ Disease`, `Pest --infects_stage→ CropStage`
 - **Multilingual labels**: English, Hindi, Marathi on every entity
@@ -118,25 +123,31 @@ Built on NetworkX with ICAR-sourced data:
 - **~5K nodes, ~20K edges** across 5 major Indian crops
 
 ### 🌍 3. Real-Time Context Fusion
+
 Every advisory synthesizes **four live data streams**:
+
 - 🌦️ **Weather** (OpenWeather One Call 3.0) — actual conditions, forecasts, extreme weather alerts
 - 🔍 **Web Search** (Tavily) — latest pest outbreak news, current mandi prices
 - 📸 **Vision Diagnosis** (GPT-4 Vision) — crop disease detection from a farmer's phone photo
 - 📍 **Location-aware** — advice calibrated to the farmer's exact geography and soil type
 
 ### 💬 4. True Multilingual Support
+
 - English, Hindi, Marathi — **full conversational fluency**, not just keyword translation
 - Farmers set their language once; the bot responds naturally in that language forever
 - Works with voice-to-text compatible input formats
 
 ### 📊 5. Attribution & Grounding Score
+
 Every recommendation includes:
+
 - Citation to the specific ICAR bulletin or KG node it's grounded in
 - A **grounding score** (0–1) showing how well the advice is backed by verified knowledge
 - `GROUNDED` / `WEAKLY_GROUNDED` / `UNGROUNDED` tags per claim
 - Human expert escalation flag when confidence is below threshold
 
 ### 👨‍🌾 6. Persistent Farmer Context
+
 - MySQL-backed session store with farmer profile: name, crop, stage, land size, location, soil type
 - 24-hour daily digest — proactive advisory pushed to the farmer every morning
 - One-tap action buttons: "Show Market Prices", "Show Govt Schemes", "Crop Recommendation"
@@ -145,17 +156,17 @@ Every recommendation includes:
 
 ## What Makes KrishiVaidya Different
 
-| Feature | Generic AI (ChatGPT/Gemini) | Existing Agri Apps | **KrishiVaidya** |
-|---|---|---|---|
-| Safety verification before delivery | ❌ | ❌ | ✅ Rule-based KG engine |
-| Domain knowledge grounding | ❌ (hallucination risk) | Partial | ✅ Cited ICAR sources |
-| Live weather integration | ❌ | Some | ✅ Real-time fusion |
-| Crop photo diagnosis | Limited | Some | ✅ GPT-4 Vision |
-| Multilingual (Hi/Mr) | Partial | Partial | ✅ Full conversational |
-| Farmer persistent profile | ❌ | Registration-heavy | ✅ Auto-built via chat |
-| Works on existing platform | ❌ | App download required | ✅ Telegram — no install |
-| Govt scheme awareness | ❌ | Partial | ✅ Live search + KG |
-| Human escalation trigger | ❌ | ❌ | ✅ Auto-flagged |
+| Feature                             | Generic AI (ChatGPT/Gemini) | Existing Agri Apps    | **KrishiVaidya**         |
+| ----------------------------------- | --------------------------- | --------------------- | ------------------------ |
+| Safety verification before delivery | ❌                          | ❌                    | ✅ Rule-based KG engine  |
+| Domain knowledge grounding          | ❌ (hallucination risk)     | Partial               | ✅ Cited ICAR sources    |
+| Live weather integration            | ❌                          | Some                  | ✅ Real-time fusion      |
+| Crop photo diagnosis                | Limited                     | Some                  | ✅ GPT-4 Vision          |
+| Multilingual (Hi/Mr)                | Partial                     | Partial               | ✅ Full conversational   |
+| Farmer persistent profile           | ❌                          | Registration-heavy    | ✅ Auto-built via chat   |
+| Works on existing platform          | ❌                          | App download required | ✅ Telegram — no install |
+| Govt scheme awareness               | ❌                          | Partial               | ✅ Live search + KG      |
+| Human escalation trigger            | ❌                          | ❌                    | ✅ Auto-flagged          |
 
 > **No existing system interposes a symbolic, knowledge-grounded safety verification layer between an LLM agricultural advisor and the farmer. KrishiVaidya is the first to do this.**
 
@@ -163,17 +174,17 @@ Every recommendation includes:
 
 ## Technology Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Orchestration** | LangGraph 1.0.7 | Agentic multi-node pipeline with state management |
-| **LLM** | OpenAI GPT-4.1 / GPT-4o-mini | Advisory generation, intake extraction, vision |
-| **Knowledge Graph** | NetworkX + custom schema | ICAR-grounded agricultural ontology |
-| **Web Search** | Tavily API | Live pest news, market prices, scheme updates |
-| **Weather** | OpenWeather One Call 3.0 | Real-time conditions + 7-day forecasts |
-| **Interface** | python-telegram-bot 22.6 | Farmer-facing Telegram bot |
-| **Database** | MySQL + SQLAlchemy | Persistent farmer sessions, image records |
-| **Validation** | Pydantic v2 | Strict data models across all pipeline stages |
-| **Language** | Python 3.11+ | Async-first architecture |
+| Layer               | Technology                   | Purpose                                           |
+| ------------------- | ---------------------------- | ------------------------------------------------- |
+| **Orchestration**   | LangGraph 1.0.7              | Agentic multi-node pipeline with state management |
+| **LLM**             | OpenAI GPT-4.1 / GPT-4o-mini | Advisory generation, intake extraction, vision    |
+| **Knowledge Graph** | NetworkX + custom schema     | ICAR-grounded agricultural ontology               |
+| **Web Search**      | Tavily API                   | Live pest news, market prices, scheme updates     |
+| **Weather**         | OpenWeather One Call 3.0     | Real-time conditions + 7-day forecasts            |
+| **Interface**       | python-telegram-bot 22.6     | Farmer-facing Telegram bot                        |
+| **Database**        | MySQL + SQLAlchemy           | Persistent farmer sessions, image records         |
+| **Validation**      | Pydantic v2                  | Strict data models across all pipeline stages     |
+| **Language**        | Python 3.11+                 | Async-first architecture                          |
 
 ---
 
@@ -231,6 +242,7 @@ KrishiVaidya/
 ## Getting Started
 
 ### Prerequisites
+
 - Python 3.11+
 - MySQL (XAMPP or any MySQL server)
 - Telegram Bot Token (from [@BotFather](https://t.me/BotFather))
@@ -262,6 +274,7 @@ cp .env.example .env
 ```
 
 Key variables to set:
+
 ```env
 OPENAI_API_KEY=sk-...
 TELEGRAM_BOT_TOKEN=...
@@ -323,11 +336,13 @@ KrishiVaidya:
 We are actively building the next major phase of KrishiVaidya:
 
 ### 🔧 In Progress Right Now
+
 - **Voice Message Support** — farmers send voice notes; Whisper transcribes before pipeline processing
 - **WhatsApp Integration** — expanding to WhatsApp Business API (Meta Cloud API)
 - **Admin Dashboard** — real-time analytics: query volume, safety violations caught, crop/region heatmaps
 
 ### 📅 Coming Next
+
 - **Full Crop Coverage** — expanding from 5 to 20+ Indian crops (Rice, Cotton, Wheat, Tomato, Soybean currently supported)
 - **District-level Pest Outbreak Alerts** — if 10+ farmers in a district report the same symptoms, push a broadcast alert to everyone in that region
 - **KVK Integration** — automatic escalation to nearest Krishi Vigyan Kendra when `needs_human_review=True`
@@ -335,6 +350,7 @@ We are actively building the next major phase of KrishiVaidya:
 - **On-Device Image Preprocessing** — compress/normalize crop photos client-side to reduce latency and API cost
 
 ### 🔬 Research Track
+
 - Formal publication of the Neurosymbolic safety verification architecture
 - Benchmark dataset for agricultural advisory hallucination detection
 - Evaluation framework for comparing AI agricultural advisors on safety, accuracy, and cultural appropriateness
@@ -357,6 +373,8 @@ This project is licensed under the **MIT License** — see [LICENSE](LICENSE) fo
 
 **Built with ❤️ for India's 140 million farmers**
 
-*KrishiVaidya — Where AI Meets Agronomic Wisdom*
+_KrishiVaidya — Where AI Meets Agronomic Wisdom_
+
+edited part goes here..
 
 </div>
