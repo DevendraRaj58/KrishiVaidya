@@ -1,0 +1,26 @@
+# KrishiVaidya — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# -------- Core AI & Orchestration --------
+langgraph==1.0.7
+openai==2.16.0
+
+# -------- Telegram Bot --------
+python-telegram-bot==22.6
+
+# -------- Web Search --------
+tavily-python==0.7.21
+
+# -------- Data Validation & Utilities --------
+pydantic==2.12.5
+python-dotenv==1.2.1
+httpx==0.28.1
+tenacity==9.1.2
+orjson==3.11.6
+
+# -------- Database --------
+SQLAlchemy==2.0.46
+mysql-connector-python==9.6.0
+
+# -------- Knowledge Graph --------
+networkx>=3.3

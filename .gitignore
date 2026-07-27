@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────
+# KrishiVaidya — .gitignore
+# ─────────────────────────────────────────────────────
+
+# -------- Python --------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+pip-wheel-metadata/
+
+# -------- Virtual Environments --------
+venv/
+.venv/
+ENV/
+env/
+.env/
+
+# -------- Secrets & Config (NEVER commit!) --------
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# -------- OS / IDE --------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# -------- Logs --------
+*.log
+logs/
+
+# -------- Local data (session store, uploads, media cache) --------
+data/
+media/
+
+# -------- Test artifacts --------
+*.html.test
+test_output/
