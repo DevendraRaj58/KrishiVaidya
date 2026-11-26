@@ -21,6 +21,7 @@ from .models import (
     GraphState,
     ImageDiagnosis,
     Observation,
+    WeatherSnapshot,
     safe_parse_advisory,
 )
 from .tools import ToolBundle, ToolError, extract_lat_lon
@@ -236,12 +237,12 @@ async def _llm_json(
     last_err: Optional[Exception] = None
     for attempt in range(1, max_tries + 1):
         try:
-            resp = await client.responses.create(
+            resp = await client.chat.completions.create(
                 model=model,
-                input=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
                 temperature=temperature,
             )
-            text = (resp.output_text or "").strip()
+            text = (resp.choices[0].message.content or "").strip()
             js = _extract_json_object(text) or ""
             data = json.loads(js)
             if isinstance(data, dict):
@@ -316,17 +317,11 @@ def _merge_observation(old: Observation, upd: IntakeExtraction) -> Observation:
 
 def _needs_profile_questions(state: GraphState) -> bool:
     c = state.context
-    if not c.farmer_name:
-        return True
-    if not (c.lat and c.lon) and not (c.location_text and c.location_text.strip()):
-        return True
-    if not c.crop:
-        return True
-    if c.stage == "unknown":
-        return True
-    if c.land_size is None:
-        return True
-    return False
+    if c.crop or state.observation.symptoms or state.last_image:
+        return False
+    if _has_location(state):
+        return False
+    return True
 
 
 def _has_location(state: GraphState) -> bool:
@@ -350,29 +345,32 @@ def _route(state: GraphState) -> str:
     if _is_stage_update_message(last_user):
         return "advice"
 
-    # If crop missing but location exists: auto recommend once
-    if (not c.crop) and _has_location(state) and last_user != ACTION_DIGEST:
-        if state.last_node != "crop_reco" or _user_wants_crop_reco(last_user):
-            return "crop_reco"
-        return "ask"
+    # If user explicitly wants crop recommendation or asks which crop to grow:
+    if _user_wants_crop_reco(last_user) and _has_location(state):
+        return "crop_reco"
 
     if state.last_image and not state.image_diagnosis:
         return "vision"
 
-    if _needs_profile_questions(state) and last_user != ACTION_DIGEST:
-        return "ask"
-
-    if c.lat and c.lon and _is_weather_stale(state):
+    # Weather: if location exists and weather is stale, fetch weather
+    if _has_location(state) and state.last_node != "weather" and _is_weather_stale(state):
         return "weather"
 
-    if (state.observation.symptoms and _is_web_stale(state)) or (last_user == ACTION_DIGEST and _is_web_stale(state)):
+    # Web search: for symptoms or crop queries
+    if (state.observation.symptoms and _is_web_stale(state) and state.last_node != "web") or (last_user == ACTION_DIGEST and _is_web_stale(state) and state.last_node != "web"):
         return "web"
 
-    if _wants_schemes(state) and _is_schemes_stale(state):
+    if _wants_schemes(state) and _is_schemes_stale(state) and state.last_node != "schemes":
         return "schemes"
 
-    if _wants_market(state) and _is_market_stale(state):
+    if _wants_market(state) and _is_market_stale(state) and state.last_node != "market":
         return "market"
+
+    # If crop is missing:
+    if not c.crop:
+        if _has_location(state):
+            return "crop_reco"
+        return "ask"
 
     return "advice"
 
@@ -486,42 +484,34 @@ def _build_compiled_graph(*, settings: Settings, client: AsyncOpenAI, tools: Too
         c = s.context
         lang = c.language
 
-        if not c.farmer_name:
-            msg = "Name?" if lang == "en" else ("नाम?" if lang == "hi" else "नाव?")
-        elif not (c.lat and c.lon) and not (c.location_text and c.location_text.strip()):
-            msg = (
-                "Location (city/village or lat,lon)?"
-                if lang == "en"
-                else ("स्थान (गांव/शहर या lat,lon)?" if lang == "hi" else "ठिकाण (गाव/शहर किंवा lat,lon)?")
+        if not c.crop and not _has_location(s):
+            msg = _t(
+                lang,
+                "Namaste! 🙏 Welcome to KrishiVaidya.\n\nPlease share your crop and location (e.g. 'Cotton in Nashik') or upload a crop photo for diagnosis.",
+                "नमस्ते! 🙏 कृषि मार्गदर्शक में आपका स्वागत है।\n\nकृपया अपनी फसल और स्थान बताएं (उदा: 'नासिक में कपास') या रोग निदान के लिए फोटो भेजें।",
+                "नमस्कार! 🙏 कृषी मार्गदर्शकमध्ये आपले स्वागत आहे.\n\nकृपया आपले पीक आणि ठिकाण सांगा (उदा: 'नाशिकमध्ये कापूस') किंवा रोग निदानासाठी फोटो पाठवा.",
             )
         elif not c.crop:
-            msg = (
-                "Pick one crop from the suggestions (reply: Crop: ___)."
-                if lang == "en"
-                else (
-                    "सुझाव से एक फसल चुनें (उत्तर: Crop: ___)."
-                    if lang == "hi"
-                    else "सुचनांमधून एक पीक निवडा (उत्तर: Crop: ___)."
-                )
+            msg = _t(
+                lang,
+                "Which crop are you asking about or growing? (e.g. Cotton, Rice, Soybean, Tomato)",
+                "आप किस फसल के बारे में पूछ रहे हैं? (उदा: कपास, धान, सोयाबीन, टमाटर)",
+                "तुम्ही कोणत्या पिकाबद्दल विचारत आहात? (उदा: कापूस, भात, सोयाबीन, टोमॅटो)",
             )
-        elif c.stage == "unknown":
-            msg = (
-                "Stage? (sowing/germination/vegetative/flowering/fruiting/maturity/harvest)"
-                if lang == "en"
-                else (
-                    "चरण? (बुवाई/अंकुरण/वृद्धि/फूल/फल/पकना/कटाई)"
-                    if lang == "hi"
-                    else "अवस्था? (पेरणी/अंकुरण/वाढ/फुलोरा/फळ/पक्वता/कापणी)"
-                )
-            )
-        elif c.land_size is None:
-            msg = (
-                "Land size? (acres/hectare)"
-                if lang == "en"
-                else ("जमीन? (एकड़/हेक्टेयर)" if lang == "hi" else "जमीन? (एकर/हेक्टर)")
+        elif not _has_location(s):
+            msg = _t(
+                lang,
+                "Please share your village or district (or tap 📍 Share Location) to get hyper-local weather and advice.",
+                "सटीक मौसम और सलाह के लिए कृपया अपना गांव या जिला बताएं (या 📍 लोकेशन भेजें दबाएँ)।",
+                "अचूक हवामान आणि सल्ल्यासाठी कृपया तुमचे गाव किंवा जिल्हा सांगा (किंवा 📍 लोकेशन पाठवा दाबा).",
             )
         else:
-            msg = "Send symptoms or photo." if lang == "en" else ("लक्षण या फोटो भेजें।" if lang == "hi" else "लक्षणं किंवा फोटो पाठवा.")
+            msg = _t(
+                lang,
+                "What symptoms are you seeing in your crop, or upload a clear photo of the leaf.",
+                "फसल में क्या समस्या या लक्षण दिख रहे हैं? या पत्ती का साफ फोटो भेजें।",
+                "पिकावर कोणती लक्षणे दिसत आहेत? किंवा पानाचा स्पष्ट फोटो पाठवा.",
+            )
 
         s.add_assistant(msg)
         s.compact_messages()
@@ -774,7 +764,8 @@ def _build_compiled_graph(*, settings: Settings, client: AsyncOpenAI, tools: Too
                 log.exception("Geocoding failed.")
 
         if not (s.context.lat and s.context.lon):
-            return {"context": s.context, "weather": s.weather, "last_node": s.last_node}
+            fallback_snap = WeatherSnapshot(summary=f"Location: {c.location_text}")
+            return {"context": s.context, "weather": s.weather or fallback_snap, "last_node": s.last_node}
 
         try:
             snap = await tools.weather(float(s.context.lat), float(s.context.lon))
@@ -855,20 +846,20 @@ def _build_compiled_graph(*, settings: Settings, client: AsyncOpenAI, tools: Too
         )
 
         try:
-            resp = await client.responses.create(
+            resp = await client.chat.completions.create(
                 model=settings.openai_model,
-                input=[
+                messages=[
                     {
                         "role": "user",
                         "content": [
-                            {"type": "input_text", "text": prompt},
-                            {"type": "input_image", "image_url": data_url},
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": data_url}},
                         ],
                     }
                 ],
                 temperature=0.2,
             )
-            txt = (resp.output_text or "").strip()
+            txt = (resp.choices[0].message.content or "").strip()
             js = _extract_json_object(txt) or "{}"
             raw = json.loads(js)
             if not isinstance(raw, dict):
@@ -906,9 +897,13 @@ def _build_compiled_graph(*, settings: Settings, client: AsyncOpenAI, tools: Too
             f"Respond in {lang_name}."
         )
 
+        if ctx.get("stage") == "unknown":
+            ctx["stage"] = "pre_sowing"
+
         schema = Advisory.model_json_schema()
         user = (
             f"Schema:\n{json.dumps(schema, ensure_ascii=False)}\n\n"
+            f"Farmer Specific Query: {last_user}\n\n"
             f"Context:{json.dumps(ctx, ensure_ascii=False)}\n"
             f"Obs:{json.dumps(obs, ensure_ascii=False)}\n"
             f"Weather:{json.dumps(weather, ensure_ascii=False)}\n"

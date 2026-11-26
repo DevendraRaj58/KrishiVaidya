@@ -38,7 +38,7 @@ async def _run_polling(settings: Settings) -> None:
 
     await app.initialize()
     await app.start()
-    await app.updater.start_polling(drop_pending_updates=True)
+    await app.updater.start_polling(drop_pending_updates=True, timeout=20)
 
     log.info("Telegram bot started (polling). Press Ctrl+C to stop.")
     await stop_event.wait()

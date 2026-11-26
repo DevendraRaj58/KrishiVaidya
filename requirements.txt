@@ -6,7 +6,7 @@ langgraph==1.0.7
 openai==2.16.0
 
 # -------- Telegram Bot --------
-python-telegram-bot==22.6
+python-telegram-bot[job-queue]==22.6
 
 # -------- Web Search --------
 tavily-python==0.7.21

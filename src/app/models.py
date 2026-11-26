@@ -47,6 +47,9 @@ class WeatherSnapshot(BaseModel):
     summary: str = ""
     alerts: list[str] = Field(default_factory=list)
     daily: list[dict[str, Any]] = Field(default_factory=list)
+    temp: Optional[float] = None
+    humidity: Optional[int] = None
+    wind: Optional[float] = None
 
 
 class WebContext(BaseModel):

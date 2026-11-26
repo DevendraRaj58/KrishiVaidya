@@ -13,6 +13,8 @@ from telegram import (
     ReplyKeyboardRemove,
     Update,
 )
+from telegram.error import NetworkError
+from telegram.request import HTTPXRequest
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -67,15 +69,15 @@ _UI = {
         "schemes_fail": "Schemes not available now. Set location + crop then try again.",
         "market_fail": "Market snapshot not available now. Try again in a moment.",
 
-        "btn_profile": "Set Profile",
-        "btn_location": "Update Location",
-        "btn_symptoms": "Report Symptoms",
-        "btn_crop_reco": "Crop Suggestions",
-        "btn_buy": "Buy Inputs",
-        "btn_schemes": "Govt Schemes",
-        "btn_market": "Market Prices",
+        "btn_profile": "📝 Set Profile",
+        "btn_location": "📍 Update Location",
+        "btn_symptoms": "🩺 Report Symptoms",
+        "btn_crop_reco": "🌾 Crop Suggestions",
+        "btn_buy": "🛒 Buy Inputs",
+        "btn_schemes": "🏛️ Govt Schemes",
+        "btn_market": "📈 Market Prices",
 
-        "btn_share_location": "Share Location",
+        "btn_share_location": "📍 Share Location",
         "share_location_prompt": "To give hyper-local advice, please share your exact location (tap button).",
         "location_saved": "Location saved. Generating updated advice…",
 
@@ -87,13 +89,13 @@ _UI = {
         "sec_links": "Links",
         "sec_conf": "Conf",
 
-        "stage_sowing": "Sowing",
-        "stage_germination": "Germination",
-        "stage_vegetative": "Vegetative",
-        "stage_flowering": "Flowering",
-        "stage_fruiting": "Fruiting",
-        "stage_maturity": "Maturity",
-        "stage_harvest": "Harvest",
+        "stage_sowing": "🌱 Sowing",
+        "stage_germination": "🌿 Germination",
+        "stage_vegetative": "🍃 Vegetative",
+        "stage_flowering": "🌸 Flowering",
+        "stage_fruiting": "🍅 Fruiting",
+        "stage_maturity": "🌾 Maturity",
+        "stage_harvest": "🚜 Harvest",
 
         "digest_title": "Daily update",
         "market_note": "Note: Web snapshot—confirm at your local mandi.",
@@ -111,15 +113,15 @@ _UI = {
         "schemes_fail": "अभी योजना नहीं मिल रही। पहले स्थान + फसल सेट करें।",
         "market_fail": "बाजार जानकारी अभी नहीं मिल रही। थोड़ी देर बाद कोशिश करें।",
 
-        "btn_profile": "प्रोफाइल सेट",
-        "btn_location": "स्थान अपडेट",
-        "btn_symptoms": "लक्षण रिपोर्ट",
-        "btn_crop_reco": "फसल सुझाव",
-        "btn_buy": "खरीद लिंक",
-        "btn_schemes": "सरकारी योजनाएँ",
-        "btn_market": "बाजार भाव",
+        "btn_profile": "📝 प्रोफाइल सेट",
+        "btn_location": "📍 स्थान अपडेट",
+        "btn_symptoms": "🩺 लक्षण रिपोर्ट",
+        "btn_crop_reco": "🌾 फसल सुझाव",
+        "btn_buy": "🛒 खरीद लिंक",
+        "btn_schemes": "🏛️ सरकारी योजनाएँ",
+        "btn_market": "📈 बाजार भाव",
 
-        "btn_share_location": "लोकेशन भेजें",
+        "btn_share_location": "📍 लोकेशन भेजें",
         "share_location_prompt": "सटीक सलाह के लिए कृपया अपनी लोकेशन भेजें (बटन दबाएँ)।",
         "location_saved": "लोकेशन सेव हो गई। नया सलाह तैयार कर रहे हैं…",
 
@@ -131,13 +133,13 @@ _UI = {
         "sec_links": "लिंक",
         "sec_conf": "विश्वास",
 
-        "stage_sowing": "बुवाई",
-        "stage_germination": "अंकुरण",
-        "stage_vegetative": "वृद्धि",
-        "stage_flowering": "फूल",
-        "stage_fruiting": "फल",
-        "stage_maturity": "पकना",
-        "stage_harvest": "कटाई",
+        "stage_sowing": "🌱 बुवाई",
+        "stage_germination": "🌿 अंकुरण",
+        "stage_vegetative": "🍃 वृद्धि",
+        "stage_flowering": "🌸 फूल",
+        "stage_fruiting": "🍅 फल",
+        "stage_maturity": "🌾 पकना",
+        "stage_harvest": "🚜 कटाई",
 
         "digest_title": "दैनिक अपडेट",
         "market_note": "नोट: वेब स्नैपशॉट—स्थानीय मंडी में पुष्टि करें।",
@@ -155,15 +157,15 @@ _UI = {
         "schemes_fail": "आत्ता योजना मिळत नाहीत. आधी ठिकाण + पीक सेट करा.",
         "market_fail": "बाजार माहिती आत्ता मिळत नाही. थोड्या वेळाने प्रयत्न करा.",
 
-        "btn_profile": "प्रोफाइल सेट",
-        "btn_location": "ठिकाण अपडेट",
-        "btn_symptoms": "लक्षणं रिपोर्ट",
-        "btn_crop_reco": "पीक सुचना",
-        "btn_buy": "खरेदी लिंक",
-        "btn_schemes": "सरकारी योजना",
-        "btn_market": "बाजार भाव",
+        "btn_profile": "📝 प्रोफाइल सेट",
+        "btn_location": "📍 ठिकाण अपडेट",
+        "btn_symptoms": "🩺 लक्षणं रिपोर्ट",
+        "btn_crop_reco": "🌾 पीक सुचना",
+        "btn_buy": "🛒 खरेदी लिंक",
+        "btn_schemes": "🏛️ सरकारी योजना",
+        "btn_market": "📈 बाजार भाव",
 
-        "btn_share_location": "लोकेशन पाठवा",
+        "btn_share_location": "📍 लोकेशन पाठवा",
         "share_location_prompt": "अचूक सल्ल्यासाठी कृपया तुमची लोकेशन पाठवा (बटन दाबा).",
         "location_saved": "लोकेशन सेव झाली. अपडेटेड सल्ला तयार करतोय…",
 
@@ -175,13 +177,13 @@ _UI = {
         "sec_links": "लिंक्स",
         "sec_conf": "विश्वास",
 
-        "stage_sowing": "पेरणी",
-        "stage_germination": "अंकुरण",
-        "stage_vegetative": "वाढ",
-        "stage_flowering": "फुलोरा",
-        "stage_fruiting": "फळ",
-        "stage_maturity": "पक्वता",
-        "stage_harvest": "कापणी",
+        "stage_sowing": "🌱 पेरणी",
+        "stage_germination": "🌿 अंकुरण",
+        "stage_vegetative": "🍃 वाढ",
+        "stage_flowering": "🌸 फुलोरा",
+        "stage_fruiting": "🍅 फळ",
+        "stage_maturity": "🌾 पक्वता",
+        "stage_harvest": "🚜 कापणी",
 
         "digest_title": "दैनिक अपडेट",
         "market_note": "नोट: वेब स्नॅपशॉट—स्थानिक मंडीत पडताळा.",
@@ -202,9 +204,9 @@ def _keyboard(lang: str) -> InlineKeyboardMarkup:
         lang = "en"
 
     lang_row = [
-        InlineKeyboardButton("English", callback_data="lang:en"),
-        InlineKeyboardButton("हिंदी", callback_data="lang:hi"),
-        InlineKeyboardButton("मराठी", callback_data="lang:mr"),
+        InlineKeyboardButton("🇬🇧 English", callback_data="lang:en"),
+        InlineKeyboardButton("🇮🇳 हिंदी", callback_data="lang:hi"),
+        InlineKeyboardButton("🇮🇳 मराठी", callback_data="lang:mr"),
     ]
 
     stage_rows = [
@@ -363,6 +365,8 @@ def _format_advisory(state: GraphState, *, digest: bool = False) -> str:
 
 
 def _ensure_digest_job(context: ContextTypes.DEFAULT_TYPE, chat_id: str) -> None:
+    if not getattr(context.application, "job_queue", None):
+        return
     name = f"digest:{chat_id}"
     if context.application.job_queue.get_jobs_by_name(name):
         return
@@ -761,15 +765,31 @@ async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
 
+async def _error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    err = context.error
+    if isinstance(err, NetworkError):
+        log.warning("Telegram transient network drop (%s) — auto-reconnecting.", err)
+        return
+    log.exception("Unhandled error processing update: %s", err)
+
+
 def build_telegram_app(settings: Settings) -> Application:
     store = StateStore.from_settings(settings)
     graph = CropAdvisorGraph.create(settings)
 
-    app = Application.builder().token(settings.telegram_bot_token).build()
+    request = HTTPXRequest(
+        read_timeout=30.0,
+        write_timeout=20.0,
+        connect_timeout=15.0,
+        pool_timeout=10.0,
+    )
+    app = Application.builder().token(settings.telegram_bot_token).request(request).build()
 
     app.bot_data["settings"] = settings
     app.bot_data["store"] = store
     app.bot_data["graph"] = graph
+
+    app.add_error_handler(_error_handler)
 
     app.add_handler(CommandHandler("start", start_cmd))
     app.add_handler(CommandHandler("help", help_cmd))

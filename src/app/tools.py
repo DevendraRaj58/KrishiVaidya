@@ -159,6 +159,20 @@ class ToolBundle:
             raise ToolError(f"Geocoding failed: {e}") from e
 
         if not isinstance(data, list) or not data:
+            # Fallback for composite locations like "dhindori nashik"
+            import re
+            words = [w.strip() for w in re.split(r"[\s,]+", q) if len(w.strip()) > 3]
+            for w in reversed(words):
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        r = await client.get(url, params={"q": w, "limit": 1, "appid": self.openweather_api_key})
+                        if r.status_code == 200:
+                            cand = r.json()
+                            if isinstance(cand, list) and cand:
+                                it = cand[0]
+                                return float(it["lat"]), float(it["lon"]), f"{q} ({it.get('name', w)})"
+                except Exception:
+                    pass
             return None, None, q
 
         item = data[0] if isinstance(data[0], dict) else {}
